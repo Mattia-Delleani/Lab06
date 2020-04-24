@@ -8,6 +8,7 @@ public class Citta {
 	private String nome;
 	private List<Rilevamento> rilevamenti;
 	private int counter = 0;
+	private boolean trasferito = true;
 	
 	
 	
@@ -46,6 +47,18 @@ public class Citta {
 	
 	public void increaseCounter() {
 		this.counter += 1;
+	}
+	public void decreaseCounter() {
+		this.counter -= 1;
+	}
+
+	
+	public boolean isTrasferito() {
+		return trasferito;
+	}
+
+	public void setTrasferito(boolean trasferito) {
+		this.trasferito = trasferito;
 	}
 
 	@Override
