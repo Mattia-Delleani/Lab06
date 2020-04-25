@@ -17,16 +17,17 @@ public class Model {
 	private String[] localita = {"Torino", "Genova", "Milano"};
 	private MeteoDAO dao;
 	private List<Citta> cittaDisponibili;
-	private List<Rilevamento> bestSoluzione = null;
+	private List<Rilevamento> bestSoluzione;
 	private int costo;
 
 	public Model() {
+		bestSoluzione = null;
 		dao = new MeteoDAO();
 		cittaDisponibili = new ArrayList<>();
 		for(String sTemp: localita) {
 			cittaDisponibili.add(new Citta(sTemp));
 			//setto un costo esagerato.
-			costo=10000000;
+			
 		}
 	}
 
@@ -44,7 +45,7 @@ public class Model {
 	
 	// of course you can change the String output with what you think works best
 	public List<Rilevamento> trovaSequenza(int mese) {
-		
+		costo=10000000;
 		//metto i parametri del mese nelle citta disponibili
 		for(Citta cTemp: cittaDisponibili) {
 			cTemp.setRilevamenti(dao.getAllRilevamentiLocalitaMese(mese, cTemp.getNome()));
@@ -173,7 +174,12 @@ public class Model {
 
 	public int getCosto() {
 		return costo;
+	}
+
+	public void setBestSoluzione(List<Rilevamento> bestSoluzione) {
+		this.bestSoluzione = bestSoluzione;
 	} 
+	
 	
 
 }

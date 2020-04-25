@@ -48,13 +48,13 @@ public class FXMLController {
     	}
     	
     	int mese = boxMese.getValue();
-    	
     	txtResult.appendText("La sequenza migliore per il mese "+ mese + " e':\n");
     	for(Rilevamento rTemp: this.model.trovaSequenza(mese)) {
     		txtResult.appendText(String.format("%-11s %-10s %2d", rTemp.getData(), rTemp.getLocalita(), rTemp.getUmidita())+"%\n");
     		
     	}
     	txtResult.appendText("\nCon un costo di: " + this.model.getCosto()+" euro");
+    	
     }
 
     @FXML

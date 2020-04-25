@@ -28,7 +28,7 @@ public class MeteoDAO {
 				Rilevamento r = new Rilevamento(rs.getString("Localita"), rs.getDate("Data"), rs.getInt("Umidita"));
 				rilevamenti.add(r);
 			}
-
+			st.close();
 			conn.close();
 			return rilevamenti;
 
