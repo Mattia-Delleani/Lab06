@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import it.polito.tdp.meteo.model.Citta;
 import it.polito.tdp.meteo.model.Rilevamento;
 
 public class MeteoDAO {
@@ -28,7 +29,7 @@ public class MeteoDAO {
 				Rilevamento r = new Rilevamento(rs.getString("Localita"), rs.getDate("Data"), rs.getInt("Umidita"));
 				rilevamenti.add(r);
 			}
-			st.close();
+
 			conn.close();
 			return rilevamenti;
 
@@ -39,82 +40,115 @@ public class MeteoDAO {
 		}
 	}
 
-	public List<Rilevamento> getAllRilevamentiLocalitaMese(int mese, String localita) {
-		
-		final String sql ="SELECT Localita, DATA, Umidita FROM situazione " + 
-				"WHERE MONTH(DATA)= ? AND localita = ? ORDER BY data ASC ";
-		
-		List<Rilevamento>rilevamenti = new ArrayList<>();
-		
-		try {
-			Connection conn = ConnectDB.getConnection();
-			PreparedStatement st = conn.prepareStatement(sql);
-			
-			st.setInt(1, mese);
-			st.setString(2, localita);
-			ResultSet rs = st.executeQuery();
-			
-			while(rs.next()) {
-				
-				rilevamenti.add(new Rilevamento(rs.getString("Localita"), rs.getDate("Data"), rs.getInt("Umidita")));
-			}
-			
-			st.close();
-			conn.close();
-			return rilevamenti;
-			
-		}catch(SQLException sqle){
-			
-			sqle.printStackTrace();
-			throw new RuntimeException(sqle);
-		}
+	//public List<Rilevamento> getAllRilevamentiLocalitaMese(int mese, String localita) {
+	/**
+	 * Carica i rilevamenti di una determinata città in un determinato mese
+	 * @param mese
+	 * @param citta
+	 * @return
+	 */
+	public List<Rilevamento> getAllRilevamentiLocalitaMese(int mese, Citta citta) {
 
+		final String sql = "SELECT localita, data, umidita FROM situazione " +
+				   "WHERE localita=? AND MONTH(data)=?  ORDER BY data ASC";
+		
+		List<Rilevamento> rilevamenti = new ArrayList<Rilevamento>();
+
+			try {
+				Connection conn = ConnectDB.getConnection();
+				PreparedStatement st = conn.prepareStatement(sql);
+				
+				st.setString(1, citta.getNome());
+				//st.setString(2, mese.getValue()); se fosse un oggetto month
+				st.setString(2, Integer.toString(mese)); 
+			
+				ResultSet rs = st.executeQuery();
+				
+				while (rs.next()) {
+
+					Rilevamento r = new Rilevamento(rs.getString("Localita"), rs.getDate("Data"), rs.getInt("Umidita"));
+					rilevamenti.add(r);
+				}
+				
+			
+				conn.close();
+				return rilevamenti;
+				
+			} catch (SQLException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
 		
 	}
+	
 
 	
-public List<Rilevamento> getAllRilevamentiMese(int mese) {
+	/**
+	 * Elenco di tutte le città presenti nel database
+	 * @return
+	 */
+	public List<Citta> getAllCitta() {
+
+		final String sql = "SELECT DISTINCT localita FROM situazione ORDER BY localita";
+
+		List<Citta> result = new ArrayList<Citta>();
+
+		try {
+			Connection conn = ConnectDB.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+
+			ResultSet rs = st.executeQuery();
+
+			while (rs.next()) {
+
+				Citta c = new Citta(rs.getString("localita"));
+				result.add(c);
+			}
+
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 		
-		final String sql ="SELECT Localita, DATA, Umidita FROM situazione " + 
-				"WHERE MONTH(DATA)= ?  ORDER BY data ASC ";
-		
-		List<Rilevamento>rilevamenti = new ArrayList<>();
-		
+	}
+	
+	/**
+	 * Dato un mese ed una città estrarre dal DB l'umidità media relativa a tale mese e tale città
+	 * (tutti i calcoli sono delegati al database)
+	 * @param mese
+	 * @param citta
+	 * @return
+	 */
+	public Double getUmiditaMedia(int mese, Citta citta) {
+
+		final String sql = "SELECT AVG(Umidita) AS U FROM situazione " +
+						   "WHERE localita=? AND MONTH(data)=? ";
+
 		try {
 			Connection conn = ConnectDB.getConnection();
 			PreparedStatement st = conn.prepareStatement(sql);
 			
-			st.setInt(1, mese);
+			st.setString(1, citta.getNome());
+			//st.setString(2, mese.getValue()); se fosse un oggetto month
+			st.setString(2, Integer.toString(mese)); 
+
 			ResultSet rs = st.executeQuery();
-			
-			while(rs.next()) {
-				
-				rilevamenti.add(new Rilevamento(rs.getString("Localita"), rs.getDate("Data"), rs.getInt("Umidita")));
-			}
-			
-			st.close();
+
+			rs.next(); // si posiziona sulla prima (ed unica) riga
+			Double u = rs.getDouble("U");
+
 			conn.close();
-			return rilevamenti;
+			return u;
 			
-		}catch(SQLException sqle){
-			
-			sqle.printStackTrace();
-			throw new RuntimeException(sqle);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
-
 		
 	}
-	public double getAvgRilevamentiLocalitaMese(int mese, String localita) {
-		
-		List<Rilevamento>rilevamenti = new ArrayList<>(this.getAllRilevamentiLocalitaMese(mese, localita));
-		int somma = 0;
-		for(Rilevamento tempR: rilevamenti ) {
-			somma+= tempR.getUmidita();
-		}
-		double media = somma/rilevamenti.size();
-		
-		return media;
-	}
-
+	
 
 }

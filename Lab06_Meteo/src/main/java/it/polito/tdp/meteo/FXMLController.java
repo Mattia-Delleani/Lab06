@@ -5,12 +5,11 @@
 package it.polito.tdp.meteo;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.meteo.model.Citta;
 import it.polito.tdp.meteo.model.Model;
-import it.polito.tdp.meteo.model.Rilevamento;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -20,6 +19,7 @@ import javafx.scene.control.TextArea;
 public class FXMLController {
 	
 	private Model model;
+	
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -28,7 +28,8 @@ public class FXMLController {
     private URL location;
 
     @FXML // fx:id="boxMese"
-    private ChoiceBox<Integer> boxMese; // Value injected by FXMLLoader
+    //private ChoiceBox<Month> boxMese; // Value injected by FXMLLoader
+    private ChoiceBox<Integer> boxMese;
 
     @FXML // fx:id="btnUmidita"
     private Button btnUmidita; // Value injected by FXMLLoader
@@ -41,33 +42,32 @@ public class FXMLController {
 
     @FXML
     void doCalcolaSequenza(ActionEvent event) {
-    	txtResult.clear();
     	
-    	if(boxMese.getValue()==null) {
-    		txtResult.setText("Selezionare un mese!");
-    	}
+    	Integer m = boxMese.getValue(); //int cannot be null so I use Integer here to then allow the control below
     	
-    	int mese = boxMese.getValue();
-    	txtResult.appendText("La sequenza migliore per il mese "+ mese + " e':\n");
-    	for(Rilevamento rTemp: this.model.trovaSequenza(mese)) {
-    		txtResult.appendText(String.format("%-11s %-10s %2d", rTemp.getData(), rTemp.getLocalita(), rTemp.getUmidita())+"%\n");
+    	if(m!=null) {
+    		List<Citta> best = model.trovaSequenza(m);
     		
+    		txtResult.appendText(String.format("Sequenza ottima per il mese %s\n", Integer.toString(m)));
+    		txtResult.appendText(best + "\n");
     	}
-    	txtResult.appendText("\nCon un costo di: " + this.model.getCosto()+" euro");
-    	
+
     }
 
     @FXML
     void doCalcolaUmidita(ActionEvent event) {
-    	txtResult.clear();
     	
-    	if(boxMese.getValue()==null) {
-    		txtResult.setText("Selezionare un mese!");
+    	//Month m = boxMese.getValue();
+    	Integer m = boxMese.getValue(); //int cannot be null so I use Integer here to then allow the control below
+    	
+    	if(m!=null) {
+    		txtResult.appendText(String.format("Dati del mese %s\n", Integer.toString(m)));
+    		
+    		for(Citta c: model.getLeCitta()) {
+    			Double u = model.getUmiditaMedia(m, c);
+    			txtResult.appendText(String.format("Città %s: umidità %f\n", c.getNome(),u));
+    		}
     	}
-    	
-    	int mese = boxMese.getValue();
-    	
-		txtResult.appendText(this.model.getUmiditaMedia(mese));
 
     }
 
@@ -80,15 +80,17 @@ public class FXMLController {
 
     }
     
-    public void setModel(Model model) {
-    	
-    	List<Integer> mesi = new ArrayList<>();
-    	
-    	for(int i=0 ; i<12;i++)
-    		mesi.add(i+1);
-    	
-    	boxMese.getItems().addAll(mesi);
-    	this.model = model;
+    private void setChoiceMesi() {
+    	for (int mese=1; mese <=12; mese ++) {
+    		boxMese.getItems().add(mese);
+    		//boxMese.getItems().add(Month.of(mese));
+    	}
     }
+    
+    public void setModel (Model m) {
+    	this.model = m;
+    	setChoiceMesi();
+    }
+    
 }
 
